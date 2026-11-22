@@ -1,8 +1,11 @@
 """FastAPI entrypoint for the CAF COA Wargamer & JISR Decision Support API."""
 
+from pathlib import Path
 from typing import Dict
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from .engine import adjudicate_turn
 from .models import (
@@ -30,6 +33,12 @@ app.add_middleware(
 )
 
 
+@app.get("/api/health")
+def health_check() -> Dict[str, str]:
+    """Health check endpoint for cloud deployment platforms."""
+    return {"status": "ok"}
+
+
 @app.get("/api/scenario", response_model=GameState)
 def get_initial_scenario() -> GameState:
     """Return the initial Operation REASSURANCE tactical scenario."""
@@ -52,3 +61,18 @@ def simulate_coa(req: CoaSimulationRequest) -> CoaSimulationResponse:
 def get_recommended_orders(state: GameState) -> Dict[str, UnitOrder]:
     """Return Utility-AI recommended Blue orders for the current board state."""
     return recommend_blue_orders(state)
+
+
+# Serve built React/Vite frontend when deployed as a single container
+_FRONTEND_DIST = Path(__file__).resolve().parents[2] / "frontend" / "dist"
+if _FRONTEND_DIST.is_dir():
+    _assets_dir = _FRONTEND_DIST / "assets"
+    if _assets_dir.is_dir():
+        app.mount("/assets", StaticFiles(directory=_assets_dir), name="assets")
+
+    @app.get("/{full_path:path}")
+    def serve_spa(full_path: str):
+        candidate = _FRONTEND_DIST / full_path
+        if full_path and candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(_FRONTEND_DIST / "index.html")
