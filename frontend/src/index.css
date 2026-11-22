@@ -1,0 +1,13 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.leaflet-container {
+  background: #020617 !important;
+  font-family: ui-sans-serif, system-ui, sans-serif;
+}
+
+.tactical-map-tiles {
+  filter: invert(100%) hue-rotate(180deg) brightness(88%) contrast(95%) saturate(80%);
+}
+
