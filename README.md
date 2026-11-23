@@ -1,6 +1,6 @@
-# Operation REASSURANCE — Tactical COA Wargamer & Decision Support System
+# Tactical COA Wargamer & Decision Support System
 
-An interactive **Course of Action (COA) Wargaming & JISR Decision Support Sandbox** modeled after the **Canadian Armed Forces (CAF) Operational Planning Process (OPP)**.
+An interactive **Course of Action (COA) wargaming and JISR Decision-Support Sandbox** modelled on the **Canadian Armed Forces (CAF) Operational Planning Process (OPP)** and the **Operation REASSURANCE** Mission.
 
 ## Operational Scenario
 Set along the **Daugava River** line in eastern Latvia under **Operation REASSURANCE**, you command forward elements of the **CAF-led NATO Multinational Brigade – Latvia (MNB-LVA)** (operating out of Camp Ādaži) defending the real georeferenced **Jēkabpils Bridge** and **Daugavpils Unity Bridge (Vienības tilts)** crossings—along with **FOB Sēlpils** on the west bank—against an advancing mechanized adversary (**Red**) over an 8-turn window.
