@@ -1,1 +1,1 @@
-"""CAF COA Wargamer Backend Package."""
+"""CAF COA Wargame Backend Package."""

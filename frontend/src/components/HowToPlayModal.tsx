@@ -18,7 +18,7 @@ export const HowToPlayModal: React.FC<HowToPlayModalProps> = ({ isOpen, onClose 
               CAF Operational Planning Process (OPP) Briefing
             </span>
             <h2 className="mt-1 text-xl font-bold tracking-tight">
-              How to Play — Operation REASSURANCE COA Wargamer
+              How to Play — Operation REASSURANCE COA Wargame
             </h2>
           </div>
           <button

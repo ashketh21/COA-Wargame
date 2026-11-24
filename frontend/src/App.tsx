@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { TacticalMap } from './components/TacticalMap';
 import { HowToPlayModal } from './components/HowToPlayModal';
 import {
@@ -44,24 +44,36 @@ export const App: React.FC = () => {
   const [blueOrders, setBlueOrders] = useState<Record<string, UnitOrder>>({});
   const [coaReport, setCoaReport] = useState<CoaSimulationResponse | null>(null);
   const [statusNotice, setStatusNotice] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [showHowToPlay, setShowHowToPlay] = useState(true);
+  const logEndRef = useRef<HTMLDivElement | null>(null);
 
   const fetchScenario = async () => {
-    const res = await fetch('/api/scenario');
-    const data: GameState = await res.json();
-    setGameState(data);
-    const firstBlue = data.units.find((u) => u.faction === 'BLUE' && u.strength > 0) ?? null;
-    setSelectedUnitId(firstBlue?.id ?? null);
-    setActiveOrderType(firstBlue ? getDefaultOrderMode(firstBlue.unit_type) : 'MOVE');
-    setBlueOrders({});
-    setCoaReport(null);
-    setStatusNotice(null);
+    try {
+      setErrorMessage(null);
+      const res = await fetch('/api/scenario');
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const data: GameState = await res.json();
+      setGameState(data);
+      const firstBlue = data.units.find((u) => u.faction === 'BLUE' && u.strength > 0) ?? null;
+      setSelectedUnitId(firstBlue?.id ?? null);
+      setActiveOrderType(firstBlue ? getDefaultOrderMode(firstBlue.unit_type) : 'MOVE');
+      setBlueOrders({});
+      setCoaReport(null);
+      setStatusNotice(null);
+    } catch {
+      setErrorMessage('Could not reach the simulation backend. Please retry.');
+    }
   };
 
   useEffect(() => {
     fetchScenario();
   }, []);
+
+  useEffect(() => {
+    logEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [gameState?.combat_log]);
 
   const selectedUnit: Unit | null = useMemo(() => {
     if (!gameState || !selectedUnitId) return null;
@@ -101,8 +113,18 @@ export const App: React.FC = () => {
 
   if (!gameState) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-950 text-slate-300 font-mono">
-        Initializing CAF JISR &amp; Tactical Wargaming Environment...
+      <div className="flex h-screen flex-col items-center justify-center gap-3 bg-slate-950 text-slate-300 font-mono">
+        <div>
+          {errorMessage ?? 'Initializing CAF JISR & Tactical Wargaming Environment...'}
+        </div>
+        {errorMessage && (
+          <button
+            onClick={fetchScenario}
+            className="rounded border border-emerald-500/60 bg-emerald-950/50 px-4 py-1.5 text-xs text-emerald-300 hover:bg-emerald-900/60"
+          >
+            Retry Connection
+          </button>
+        )}
       </div>
     );
   }
@@ -184,8 +206,11 @@ export const App: React.FC = () => {
           horizon_turns: horizon,
         }),
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data: CoaSimulationResponse = await res.json();
       setCoaReport(data);
+    } catch {
+      setStatusNotice('Monte Carlo simulation failed — please try again.');
     } finally {
       setLoading(false);
     }
@@ -193,14 +218,19 @@ export const App: React.FC = () => {
 
   const handleRecommendOrders = async () => {
     if (isGameOver) return;
-    const res = await fetch('/api/recommend-orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(gameState),
-    });
-    const recommended: Record<string, UnitOrder> = await res.json();
-    setBlueOrders(recommended);
-    setStatusNotice('Applied Utility-AI recommended Blue COA orders.');
+    try {
+      const res = await fetch('/api/recommend-orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(gameState),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const recommended: Record<string, UnitOrder> = await res.json();
+      setBlueOrders(recommended);
+      setStatusNotice('Applied Utility-AI recommended Blue COA orders.');
+    } catch {
+      setStatusNotice('Could not fetch AI order recommendations — please try again.');
+    }
   };
 
   const handleCommitTurn = async () => {
@@ -215,11 +245,24 @@ export const App: React.FC = () => {
           blue_orders: blueOrders,
         }),
       });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const nextState: GameState = await res.json();
       setGameState(nextState);
       setBlueOrders({});
       setCoaReport(null);
       setStatusNotice(null);
+      const stillAlive = nextState.units.some(
+        (u) => u.id === selectedUnitId && u.strength > 0
+      );
+      if (!stillAlive) {
+        const nextBlue = nextState.units.find((u) => u.faction === 'BLUE' && u.strength > 0) ?? null;
+        setSelectedUnitId(nextBlue?.id ?? null);
+        if (nextBlue) {
+          setActiveOrderType(getDefaultOrderMode(nextBlue.unit_type));
+        }
+      }
+    } catch {
+      setStatusNotice('Turn adjudication request failed — please try again.');
     } finally {
       setLoading(false);
     }
@@ -236,7 +279,7 @@ export const App: React.FC = () => {
             CAF OPP / JISR Decision Support Prototype
           </span>
           <h1 className="text-lg font-bold tracking-tight">
-            Operation REASSURANCE — Tactical COA Wargamer
+            Operation REASSURANCE — Tactical COA Wargame
           </h1>
         </div>
         <div className="flex items-center gap-4 text-sm font-mono">
@@ -495,6 +538,7 @@ export const App: React.FC = () => {
                 {entry}
               </div>
             ))}
+            <div ref={logEndRef} />
           </div>
         </aside>
       </div>

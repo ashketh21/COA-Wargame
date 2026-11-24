@@ -1,4 +1,4 @@
-"""FastAPI entrypoint for the CAF COA Wargamer & JISR Decision Support API."""
+"""FastAPI entrypoint for the CAF COA Wargame & JISR Decision Support API."""
 
 from pathlib import Path
 from typing import Dict
@@ -19,7 +19,7 @@ from .monte_carlo import recommend_blue_orders, run_monte_carlo_coa
 from .scenario import create_initial_scenario
 
 app = FastAPI(
-    title="CAF COA Wargamer & JISR Decision Support API",
+    title="CAF COA Wargame & JISR Decision Support API",
     version="0.1.0",
     description="Headless wargaming adjudication and Monte Carlo COA evaluation engine.",
 )

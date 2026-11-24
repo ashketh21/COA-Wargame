@@ -1,4 +1,4 @@
-"""Unit tests for the CAF COA Wargamer adjudication and Monte Carlo engine."""
+"""Unit tests for the CAF COA Wargame adjudication and Monte Carlo engine."""
 
 from app.engine import adjudicate_turn
 from app.models import (

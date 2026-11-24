@@ -1,4 +1,6 @@
-# Tactical COA Wargamer & Decision Support System
+# Tactical COA Wargame & Decision Support System
+
+**Live Demo:** https://coawargame.up.railway.app
 
 An interactive **Course of Action (COA) wargaming and JISR Decision-Support Sandbox** modelled on the **Canadian Armed Forces (CAF) Operational Planning Process (OPP)** and the **Operation REASSURANCE** Mission.
 
